@@ -25,12 +25,11 @@ $VERSION = '0.1';
 	changed     => 'Thu Apr 19 21:55:07 +0200 2012',
 );
 
-sub twatspam_message {
-	my ($server, $data, $nick, $mask, $target) = @_;
+sub twatspam_process_message {
+	my ($server, $msg, $target) = @_;
 
-	Irssi::signal_continue($server, $data, $nick, $mask, $target);
-
-	return unless $data =~ m/https?:\/\/(?:favstar\.fm|twitter\.com)\/.*\/status\/(\d+)(?:.*)?$/;
+	return unless $target =~ /^#(wijs|catena|lolwut)/;
+	return unless $msg =~ m/https?:\/\/(?:favstar\.fm|twitter\.com)\/.*\/status\/(\d+)(?:.*)?$/;
 
 	my $status_id = $1;
 	my $json_url = "http://api.twitter.com/1/statuses/show/$status_id.json";
@@ -40,23 +39,21 @@ sub twatspam_message {
 	my $tweet = decode_json($json);
 	my $message = "Tweet by \@$tweet->{user}->{screen_name} ($tweet->{user}->{name}): \"$tweet->{text}\"";
 
-	# This does not get me much. I want to channel that the event was
-	# triggered in, not whatever window might be active at the time.
-	my $win = Irssi::active_win();
-
-	# $target does not contain the active channel for the second round
-	# (triggered by the "In reply to" message), so this is mostly useless.
-	my $channel = $target;
-
-	$server->command("msg $channel $message");
+	$server->command("msg $target $message");
 
 	if ($tweet->{in_reply_to_screen_name} && $tweet->{in_reply_to_status_id}) {
+		$server->command("msg $target ↳ In reply to: https://twitter.com/$tweet->{in_reply_to_screen_name}/status/$tweet->{in_reply_to_status_id}");
 		usleep(25000);
-		$server->command("msg $channel ↳ In reply to: https://twitter.com/$tweet->{in_reply_to_screen_name}/status/$tweet->{in_reply_to_status_id}");
 	}
 }
 
-Irssi::signal_add_last('message public', 'twatspam_message');
-Irssi::signal_add_last('message own_public', 'twatspam_message');
-Irssi::signal_add_last('message private', 'twatspam_message');
-Irssi::signal_add_last('message own_private', 'twatspam_message');
+Irssi::signal_add_last('message public', sub {
+	my ($server, $msg, $nick, $mask, $target) = @_;
+	Irssi::signal_continue($server, $msg, $nick, $mask, $target);
+	twatspam_process_message($server, $msg, $target);
+});
+Irssi::signal_add_last('message own_public', sub {
+	my ($server, $msg, $target) = @_;
+	Irssi::signal_continue($server, $msg, $target);
+	twatspam_process_message($server, $msg, $target);
+});
