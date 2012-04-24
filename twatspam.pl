@@ -32,12 +32,25 @@ sub twatspam_process_message {
 	return unless $msg =~ m/https?:\/\/(?:favstar\.fm|twitter\.com)\/.*\/status\/(\d+)(?:.*)?$/;
 
 	my $status_id = $1;
-	my $json_url = "http://api.twitter.com/1/statuses/show/$status_id.json";
+	my $json_url = "http://api.twitter.com/1/statuses/show/$status_id.json?include_entities=1";
 	my $json = get($json_url);
 	return unless $json;
 
 	my $tweet = decode_json($json);
-	my $message = "Tweet by \@$tweet->{user}->{screen_name} ($tweet->{user}->{name}): \"$tweet->{text}\"";
+
+	# Expand entities like short URLs, user mentions and media.
+	my $text = $tweet->{text};
+	my $entities = $tweet->{entities};
+	foreach my $entity (@{$tweet->{entities}->{urls}}) {
+		my $start_pos = @{$entity->{indices}}[0];
+		my $end_pos = @{$entity->{indices}}[1];
+		my $display_url = $entity->{display_url};
+		$display_url = "http://$display_url" unless $display_url =~ m/^\w+:/;
+		substr($text, $start_pos, $end_pos - $start_pos, $display_url);
+		last; # TODO: handle multiple entities (the string indices change)
+	}
+
+	my $message = "Tweet by \@$tweet->{user}->{screen_name} ($tweet->{user}->{name}): \"$text\"";
 
 	$server->command("msg $target $message");
 
