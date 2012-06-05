@@ -5,8 +5,9 @@
 # Jan Moesen, 2012
 #
 # == INSTALL
-# Place these files in `~/.irssi/scripts/`.
-# /script load twatspam.pl
+# Save it in ~/.irssi/scripts/ and do /script load twatspam.pl
+# OR
+# Save it in ~/.irssi/scripts/autorun and (re)start Irssi
 
 use strict;
 use Irssi;
@@ -22,7 +23,7 @@ $VERSION = '0.1';
 	description => 'Expand the tweets mentioned in a channel, as well as the tweets those tweets refer to.',
 	license     => 'GPL',
 	url         => 'http://jan.moesen.nu/',
-	changed     => 'Thu Apr 19 21:55:07 +0200 2012',
+	changed     => 'Tue Jun 05 10:53:35 +0200 2012',
 );
 
 sub twatspam_process_message {
