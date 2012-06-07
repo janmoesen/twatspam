@@ -23,7 +23,6 @@ $VERSION = '0.1';
 	description => 'Expand the tweets mentioned in a channel, as well as the tweets those tweets refer to.',
 	license     => 'GPL',
 	url         => 'http://jan.moesen.nu/',
-	changed     => 'Tue Jun 05 10:53:35 +0200 2012',
 );
 
 sub twatspam_process_message {
