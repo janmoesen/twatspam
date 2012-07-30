@@ -29,7 +29,7 @@ sub twatspam_process_message {
 	my ($server, $msg, $target) = @_;
 
 	return unless $target =~ /^#(wijs|catena|lolwut)/;
-	return unless $msg =~ m/https?:\/\/(?:favstar\.fm|twitter\.com|mobile\.twitter\.com)\/.*\/status\/(\d+)(?:.*)?$/;
+	return unless $msg =~ m/https?:\/\/(?:favstar\.fm|twitter\.com|mobile\.twitter\.com)\/.*\/status(?:es)?\/(\d+)(?:.*)?$/;
 
 	my $status_id = $1;
 	my $json_url = "http://api.twitter.com/1/statuses/show/$status_id.json?include_entities=1";
