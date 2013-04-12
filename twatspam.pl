@@ -52,10 +52,15 @@ sub twatspam_process_message {
 
 	my $message = "Tweet by \@$tweet->{user}->{screen_name} ($tweet->{user}->{name}): \"$text\"";
 
+	my $isInReplyTo = $tweet->{in_reply_to_screen_name} && $tweet->{in_reply_to_status_id};
+	if ($isInReplyTo && $msg !~ /!expand/) {
+		$message .= ' (Twatspam tip: append "!expand" to show the context.)';
+	}
+
 	$server->command("msg $target $message");
 
-	if ($tweet->{in_reply_to_screen_name} && $tweet->{in_reply_to_status_id}) {
-		$server->command("msg $target ↳ In reply to: https://twitter.com/$tweet->{in_reply_to_screen_name}/status/$tweet->{in_reply_to_status_id}");
+	if ($isInReplyTo && $msg =~ /!expand/) {
+		$server->command("msg $target ↳ In reply to: https://twitter.com/$tweet->{in_reply_to_screen_name}/status/$tweet->{in_reply_to_status_id} !expand");
 		usleep(25000);
 	}
 }
