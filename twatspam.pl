@@ -28,7 +28,7 @@ $VERSION = '0.1';
 sub twatspam_process_message {
 	my ($server, $msg, $target) = @_;
 
-	return unless $target =~ /^#(catena|lolwut)/;
+	return unless $target =~ /^#(fronteers|catena|lolwut)/;
 	return unless $msg =~ m/https?:\/\/(?:favstar\.fm|twitter\.com|mobile\.twitter\.com)\/.*\/status(?:es)?\/(\d+)(?:.*)?$/;
 
 	my $status_id = $1;
