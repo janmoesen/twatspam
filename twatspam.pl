@@ -14,6 +14,7 @@ use Irssi;
 use JSON::XS;
 use LWP::Simple;
 use Time::HiRes 'usleep';
+use HTML::Entities;
 use vars qw($VERSION %IRSSI);
 
 $VERSION = '0.1';
@@ -50,7 +51,7 @@ sub twatspam_process_message {
 		last; # TODO: handle multiple entities (the string indices change)
 	}
 
-	my $message = "Tweet by \@$tweet->{user}->{screen_name} ($tweet->{user}->{name}): \"$text\"";
+	my $message = decode_entities("Tweet by \@$tweet->{user}->{screen_name} ($tweet->{user}->{name}): \"$text\"");
 
 	my $isInReplyTo = $tweet->{in_reply_to_screen_name} && $tweet->{in_reply_to_status_id};
 	if ($isInReplyTo && $msg !~ /!expand/) {
