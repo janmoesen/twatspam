@@ -56,16 +56,12 @@ sub twatspam_process_message {
 
 	my $tweet = $twitter->show_status($status_id);
 
-	# Expand entities like short URLs, user mentions and media.
+	# Expand link and media URLs.
 	my $text = $tweet->{text};
-	my $entities = $tweet->{entities};
-	foreach my $entity (@{$tweet->{entities}->{urls}}) {
-		my $start_pos = @{$entity->{indices}}[0];
-		my $end_pos = @{$entity->{indices}}[1];
-		my $display_url = $entity->{display_url};
-		$display_url = "http://$display_url" unless $display_url =~ m/^\w+:/;
-		substr($text, $start_pos, $end_pos - $start_pos, $display_url);
-		last; # TODO: handle multiple entities (the string indices change)
+	foreach my $entity (@{$tweet->{entities}->{urls}}, @{$tweet->{entities}->{media}}) {
+		my $old_url = quotemeta($entity->{url});
+		my $new_url = $entity->{expanded_url};
+		$text =~ s/$old_url/$new_url/g;
 	}
 
 	my $message = "Tweet by \@$tweet->{user}->{screen_name} ($tweet->{user}->{name}): \"$text\"";
