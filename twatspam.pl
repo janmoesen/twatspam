@@ -12,7 +12,6 @@
 use strict;
 use Irssi;
 use Net::Twitter;
-use HTML::Entities;
 use vars qw($VERSION %IRSSI);
 
 $VERSION = '0.2';
@@ -35,6 +34,7 @@ sub twatspam_load {
 
 	$twitter = Net::Twitter->new(
 		traits              => [qw/API::RESTv1_1/],
+		decode_html_entities => 1,
 		consumer_key        => Irssi::settings_get_str('twatspam_consumer_key'),
 		consumer_secret     => Irssi::settings_get_str('twatspam_consumer_secret'),
 		access_token        => Irssi::settings_get_str('twatspam_access_token'),
@@ -67,7 +67,7 @@ sub twatspam_process_message {
 		last; # TODO: handle multiple entities (the string indices change)
 	}
 
-	my $message = decode_entities("Tweet by \@$tweet->{user}->{screen_name} ($tweet->{user}->{name}): \"$text\"");
+	my $message = "Tweet by \@$tweet->{user}->{screen_name} ($tweet->{user}->{name}): \"$text\"";
 
 	my $isInReplyTo = $tweet->{in_reply_to_screen_name} && $tweet->{in_reply_to_status_id};
 	if ($isInReplyTo && $msg !~ /!expand/) {
