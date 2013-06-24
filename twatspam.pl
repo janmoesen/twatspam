@@ -2,7 +2,7 @@
 # Expand the tweets mentioned in a channel, as well as the tweets those tweets refer to.
 #
 # == WHO
-# Jan Moesen, 2012
+# Jan Moesen, 2012–2013
 #
 # == INSTALL
 # Save it in ~/.irssi/scripts/ and do /script load twatspam.pl
@@ -11,13 +11,11 @@
 
 use strict;
 use Irssi;
-use JSON::XS;
-use LWP::Simple;
-use Time::HiRes 'usleep';
+use Net::Twitter;
 use HTML::Entities;
 use vars qw($VERSION %IRSSI);
 
-$VERSION = '0.1';
+$VERSION = '0.2';
 %IRSSI = (
 	authors     => 'Jan Moesen',
 	name        => 'Twatspam',
@@ -26,6 +24,27 @@ $VERSION = '0.1';
 	url         => 'http://jan.moesen.nu/',
 );
 
+my $twitter;
+
+sub twatspam_load {
+	# Get these from https://dev.twitter.com/apps/new
+	Irssi::settings_add_str('twatspam', 'twatspam_consumer_key', '');
+	Irssi::settings_add_str('twatspam', 'twatspam_consumer_secret', '');
+	Irssi::settings_add_str('twatspam', 'twatspam_access_token', '');
+	Irssi::settings_add_str('twatspam', 'twatspam_access_token_secret', '');
+
+	$twitter = Net::Twitter->new(
+		traits              => [qw/API::RESTv1_1/],
+		consumer_key        => Irssi::settings_get_str('twatspam_consumer_key'),
+		consumer_secret     => Irssi::settings_get_str('twatspam_consumer_secret'),
+		access_token        => Irssi::settings_get_str('twatspam_access_token'),
+		access_token_secret => Irssi::settings_get_str('twatspam_access_token_secret'),
+	);
+}
+
+twatspam_load();
+Irssi::signal_add('setup changed', \&twatspam_load);
+
 sub twatspam_process_message {
 	my ($server, $msg, $target) = @_;
 
@@ -33,11 +52,8 @@ sub twatspam_process_message {
 	return unless $msg =~ m/https?:\/\/(?:favstar\.fm|twitter\.com|mobile\.twitter\.com)\/.*\/status(?:es)?\/(\d+)(?:.*)?$/;
 
 	my $status_id = $1;
-	my $json_url = "http://api.twitter.com/1/statuses/show/$status_id.json?include_entities=1";
-	my $json = get($json_url);
-	return unless $json;
 
-	my $tweet = decode_json($json);
+	my $tweet = $twitter->show_status($status_id);
 
 	# Expand entities like short URLs, user mentions and media.
 	my $text = $tweet->{text};
