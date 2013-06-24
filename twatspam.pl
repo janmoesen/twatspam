@@ -10,6 +10,7 @@
 # Save it in ~/.irssi/scripts/autorun and (re)start Irssi
 
 use strict;
+use utf8;
 use Irssi;
 use Net::Twitter;
 use vars qw($VERSION %IRSSI);
@@ -68,6 +69,10 @@ sub twatspam_process_message {
 	}
 
 	my $message = "Tweet by \@$tweet->{user}->{screen_name} ($tweet->{user}->{name}): \"$text\"";
+
+	# Prevent infinite loops.
+	utf8::decode($msg);
+	return if ($message eq $msg);
 
 	my $isInReplyTo = $tweet->{in_reply_to_screen_name} && $tweet->{in_reply_to_status_id};
 	if ($isInReplyTo && $msg !~ /!expand/) {
