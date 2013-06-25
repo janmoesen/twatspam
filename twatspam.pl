@@ -13,6 +13,7 @@ use strict;
 use utf8;
 use Irssi;
 use Net::Twitter;
+use Time::HiRes 'usleep';
 use vars qw($VERSION %IRSSI);
 
 $VERSION = '0.2';
