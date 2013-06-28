@@ -63,6 +63,8 @@ sub twatspam_process_message {
 		my $old_url = quotemeta($entity->{url});
 		my $new_url = $entity->{expanded_url};
 		$text =~ s/$old_url/$new_url/g;
+		$text =~ s/\r/ /g;
+		$text =~ s/\n/ \/\/ /g;
 	}
 
 	my $message = "Tweet by \@$tweet->{user}->{screen_name} ($tweet->{user}->{name}): \"$text\"";
