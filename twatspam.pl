@@ -35,7 +35,7 @@ sub twatspam_load {
 	Irssi::settings_add_str('twatspam', 'twatspam_access_token_secret', '');
 
 	$twitter = Net::Twitter->new(
-		traits              => [qw/API::RESTv1_1/],
+		traits              => [qw/API::RESTv1_1 WrapError/],
 		decode_html_entities => 1,
 		consumer_key        => Irssi::settings_get_str('twatspam_consumer_key'),
 		consumer_secret     => Irssi::settings_get_str('twatspam_consumer_secret'),
@@ -55,7 +55,7 @@ sub twatspam_process_message {
 
 	my $status_id = $1;
 
-	my $tweet = $twitter->show_status($status_id);
+	return unless my $tweet = $twitter->show_status($status_id);
 
 	# Expand link and media URLs.
 	my $text = $tweet->{text};
