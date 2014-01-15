@@ -36,6 +36,7 @@ sub twatspam_load {
 
 	$twitter = Net::Twitter->new(
 		traits              => [qw/API::RESTv1_1 WrapError/],
+		ssl                 => 1,
 		decode_html_entities => 1,
 		consumer_key        => Irssi::settings_get_str('twatspam_consumer_key'),
 		consumer_secret     => Irssi::settings_get_str('twatspam_consumer_secret'),
