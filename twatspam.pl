@@ -50,6 +50,7 @@ Irssi::signal_add('setup changed', \&twatspam_load);
 
 sub twatspam_process_message {
 	my ($server, $msg, $target) = @_;
+	utf8::decode($msg);
 
 	return unless $target =~ /^#(fronteers|catena|lolwut)/;
 	return unless $msg =~ m/https?:\/\/(?:favstar\.fm|twitter\.com|mobile\.twitter\.com)\/.*\/status(?:es)?\/(\d+)(?:.*)?$/;
@@ -70,14 +71,13 @@ sub twatspam_process_message {
 
 	my $message = "Tweet by \@$tweet->{user}->{screen_name} ($tweet->{user}->{name}): \"$text\"";
 
-	# Prevent infinite loops.
-	utf8::decode($msg);
-	return if ($message eq $msg);
-
 	my $isInReplyTo = $tweet->{in_reply_to_screen_name} && $tweet->{in_reply_to_status_id};
 	if ($isInReplyTo && $msg !~ /!expand/) {
 		$message .= ' (Twatspam tip: append "!expand" to show the context.)';
 	}
+
+	# Prevent infinite loops.
+	return if ($message eq $msg);
 
 	$server->command("msg $target $message");
 
