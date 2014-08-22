@@ -52,7 +52,15 @@ sub twatspam_process_message {
 	my ($server, $msg, $target) = @_;
 	utf8::decode($msg);
 
-	return unless $target =~ /^#(fronteers|catena|lolwut)/;
+	my $command = 'msg';
+
+	# Check if it is a public (channel) message or a private message.
+	if ($target =~ /^#/) {
+		return unless $target =~ /^#(fronteers|catena|lolwut)/;
+	} else {
+		$command = 'query';
+	}
+
 	return unless $msg =~ m/https?:\/\/(?:favstar\.fm|twitter\.com|mobile\.twitter\.com)\/.*\/status(?:es)?\/(\d+)(?:.*)?$/;
 
 	my $status_id = $1;
@@ -80,10 +88,10 @@ sub twatspam_process_message {
 	# Prevent infinite loops.
 	return if ($message eq $msg);
 
-	$server->command("msg $target $message");
+	$server->command("$command $target $message");
 
 	if ($isInReplyTo && $msg =~ / \+expand\b/) {
-		$server->command("msg $target ↳ In reply to: https://twitter.com/$tweet->{in_reply_to_screen_name}/status/$tweet->{in_reply_to_status_id} +expand");
+		$server->command("$command $target ↳ In reply to: https://twitter.com/$tweet->{in_reply_to_screen_name}/status/$tweet->{in_reply_to_status_id} +expand");
 		usleep(25000);
 	}
 }
@@ -93,8 +101,21 @@ Irssi::signal_add_last('message public', sub {
 	Irssi::signal_continue($server, $msg, $nick, $mask, $target);
 	twatspam_process_message($server, $msg, $target);
 });
+
 Irssi::signal_add_last('message own_public', sub {
 	my ($server, $msg, $target) = @_;
 	Irssi::signal_continue($server, $msg, $target);
+	twatspam_process_message($server, $msg, $target);
+});
+
+Irssi::signal_add_last('message private', sub {
+	my ($server, $msg, $nick, $mask) = @_;
+	Irssi::signal_continue($server, $msg, $nick, $mask);
+	twatspam_process_message($server, $msg, $nick);
+});
+
+Irssi::signal_add_last('message own_private', sub {
+	my ($server, $msg, $target, $original_target) = @_;
+	Irssi::signal_continue($server, $msg, $target, $original_target);
 	twatspam_process_message($server, $msg, $target);
 });
